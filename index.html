@@ -1,0 +1,47 @@
+<script>
+async function downloadVideo() {
+    const url = document.getElementById('videoUrl').value.trim();
+    const statusDiv = document.getElementById('status');
+
+    if (!url) {
+        statusDiv.innerHTML = "<span style='color: red;'>Silakan masukkan URL terlebih dahulu!</span>";
+        return;
+    }
+
+    statusDiv.innerText = "Menghubungkan ke server pihak ketiga...";
+
+    try {
+        // MENGGUNAKAN PIHAK KETIGA: Kita lewatkan URL melalui CORS Proxy gratis
+        // Ini mengakali browser agar mengira data datang dari tempat yang aman
+        const proxyUrl = `https://allorigins.win{encodeURIComponent(url)}`;
+        
+        const response = await fetch(proxyUrl);
+        
+        if (!response.ok) {
+            throw new Error("Server pihak ketiga gagal mengambil video.");
+        }
+
+        const blob = await response.blob();
+        const blobUrl = window.URL.createObjectURL(blob);
+        
+        const a = document.createElement('a');
+        a.style.display = 'none';
+        a.href = blobUrl;
+        
+        // Menentukan nama file otomatis
+        const fileName = 'video_download_' + Date.now() + '.mp4';
+        a.download = fileName;
+        
+        document.body.appendChild(a);
+        a.click();
+        
+        window.URL.revokeObjectURL(blobUrl);
+        document.body.removeChild(a);
+        
+        statusDiv.innerHTML = "<span style='color: green;'>Unduhan berhasil lewat pihak ketiga!</span>";
+    } catch (error) {
+        console.error(error);
+        statusDiv.innerHTML = "<span style='color: red;'>Gagal. Web pihak ketiga tidak dapat menjangkau video ini atau format tidak didukung.</span>";
+    }
+}
+</script>
